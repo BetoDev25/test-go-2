@@ -24,9 +24,9 @@ func main() {
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(
 		http.StripPrefix("/app", http.FileServer(http.Dir("."))),
 	))
-	mux.Handle("/healthz", http.HandlerFunc(handlerReadiness))
-	mux.Handle("/metrics", http.HandlerFunc(apiCfg.handlerMetrics))
-	mux.Handle("/reset",   http.HandlerFunc(apiCfg.handlerReset))
+	mux.Handle("GET /api/healthz", http.HandlerFunc(handlerReadiness))
+	mux.Handle("GET /admin/metrics", http.HandlerFunc(apiCfg.handlerMetrics))
+	mux.Handle("POST /admin/reset",   http.HandlerFunc(apiCfg.handlerReset))
 
 	log.Fatal(server.ListenAndServe())
 }

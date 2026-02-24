@@ -5,10 +5,18 @@ import (
 	"net/http"
 	"sync/atomic"
 	"encoding/json"
+	"database/sql"
+	"os"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+
+	 "github.com/BetoDev25/test-go-2/internal/database"
 )
 
 type apiConfig struct {
 	fileserverHits atomic.Int32
+	database       *database.Queries
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
@@ -34,6 +42,14 @@ func respondWithError(w http.ResponseWriter, code int, msg string) {
 }
 
 func main() {
+	godotenv.Load()
+	dbURL := os.Getenv("DB_URL")
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dbQueries := database.New(db)
+
 	mux := http.NewServeMux()
 	server := http.Server{
 		Handler: mux,
@@ -42,6 +58,7 @@ func main() {
 
 	apiCfg := apiConfig{
 		fileserverHits: atomic.Int32{},
+		database:       dbQueries,
 	}
 
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(
